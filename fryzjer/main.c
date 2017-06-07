@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
+#include <ctype.h>
 #include "queue.h"
 
 pthread_mutex_t mutex_poczekalnia = PTHREAD_MUTEX_INITIALIZER, mutex_gabinet = PTHREAD_MUTEX_INITIALIZER;
@@ -11,6 +13,73 @@ int licznik = 0, zrezygnowani = 0, klient = -1, debug = 0;
 sem_t budzenie, zajetosc_fryzjera, strzyzenie_klienta, customerLock2, poczekalnia;
 
 queue *oczekujacy_klienci, *zrezygnowani_klienci;
+
+int * parser(int argc, char* argv[])
+{
+  static int config[3];  //0 - time, 1 - debug (0 -tak, 1 - nie), 2 - rozmiar poczekalni
+
+  config[0] = 10; //domyślny time
+  config[1] = 5;  //domyślny rozmiar poczekalni
+  config[2] = 0; //domyślnie no debug
+  int j;
+
+  if(argc > 2 && argc < 7)
+  {
+    for (j=0;j<argc;j++)
+    {
+      if(strcmp(argv[j], "-t") == 0)
+      {
+        int len = strlen(argv[j+1]), i;
+        for(i=0;i<len;i++)
+        {
+          if (!isdigit(argv[j+1][i]))
+              return config;
+        }
+        config[0] = atoi(argv[j+1]);  //us
+        j++;
+      }
+      else if(strcmp(argv[j], "-ts") == 0)
+      {
+        int len = strlen(argv[j+1]), i;
+        for(i=0;i<len;i++)
+        {
+          if (!isdigit(argv[j+1][i]))
+              return config;
+        }
+        config[0] = atoi(argv[j+1]) * 1000000;  //s -> us
+        j++;
+      }
+      else if(strcmp(argv[j], "-tms") == 0)
+      {
+        int len = strlen(argv[j+1]), i;
+        for(i=0;i<len;i++)
+        {
+          if (!isdigit(argv[j+1][i]))
+              return config;
+        }
+        config[0] = atoi(argv[j+1]) * 1000;  //ms -> us
+        j++;
+      }
+      else if(strcmp(argv[j], "-size") == 0 || (strcmp(argv[j], "-s") == 0))
+      {
+        int len = strlen(argv[j+1]), i;
+        for(i=0;i<len;i++)
+        {
+          if (!isdigit(argv[j+1][i]))
+              return config;
+        }
+        config[1] = atoi(argv[j+1]);  //rozmiar poczekalni
+        j++;
+      }
+      else if(strcmp(argv[j], "-debug") == 0)
+      {
+        config[2] = 1;
+      }
+    }
+  }
+
+    return config;
+}
 
 void state(){
     int value;
