@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
+#include <ctype.h>
 #include "queue.h"
 
 pthread_mutex_t mutex_poczekalnia = PTHREAD_MUTEX_INITIALIZER, mutex_gabinet = PTHREAD_MUTEX_INITIALIZER;
