@@ -8,14 +8,45 @@
 \usepackage{float}
 \usepackage{setspace} %texlive-latex-recommended
 \usepackage{enumitem}
-
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{color}
 \usepackage{tabularx}
+ 
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \newcommand{\imgz}{0.44\linewidth}
 \newcommand{\numerzajec}{2}
 \newcommand{\tematzajec}{Problem śpiącego fryzjera.}
 \newcommand{\datazajec}{8 czerwca 2017}
 
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  xleftmargin=\parindent,
+  language=C,
+   backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{escapechar=@,style=customc}
 
 \begin{document}
 	\thispagestyle{empty}
@@ -36,7 +67,7 @@
 	\vspace{2cm}
 	\begin{tabular}{rl}
         Wykonujący ćwiczenie: &\textbf{Karol Budlewski} \\
-                              & \textbf{Karol Budlewski} \\
+                              & \textbf{Maciej Więckowski} \\
 	\end{tabular}
 
 	\vspace{3.5cm}	
@@ -81,12 +112,6 @@
 	\end{flushright}
 	\pagebreak
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-	\tableofcontents
-
-	\pagebreak
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 	
 	\section{Wstęp}
 	Celem projektu było rozwiązanie problemu fryzjera realizowanego na wątkach oraz 
@@ -131,12 +156,196 @@
 		\item ./build/fryzjer -tms 150 -size 10
 		\item ./build/fryzjer -t   150 -size 10 -debug
 	\end{itemize}
- 	
- 	\section{Testowanie}
- 	
+ 	 	
  	\section{Zaimplementowane funkcje}
- 	\subsection{Wersja z użyciem zmiennych warunkowych}
-
+ 	\subsection{Ogólne założenia funkcji}
+ 	W obu programach występują te same funkcje:
+ 	\begin{enumerate}
+ 		\item \texttt{customer}, 
+ 		\item \texttt{barber}, 
+ 		\item \texttt{parser}, 
+ 		\item \texttt{createCustomer}, 
+ 		\item \texttt{state}, 
+ 		\item \texttt{semaphoreInit}.
+	\end{enumerate}
+ 	Funckje \texttt{parser}, \texttt{createCustomer}, \texttt{state}, 
+ 	\texttt{semaphoreInit} wykonują ten sam kod. Dodatkowo została zaimplementowana 
+ 	kolejka \textsc{FIFO}, która jest używana również jak zwykła lista.
+ 	\subsubsection{parser}
+ 	Jest to funkcja do sprawdzania użytych opcji. Może spowodować wykonanie 
+ 	się programu na domyślnych ustawieniach w przypadku błędnego użycia opcja.
  	
+ 	np. po opcji \texttt{-size} nie zostanie podana żadna liczba.
+ 	
+ 	\subsubsection{state}
+ 	Jest to funkcja do wyświetlania na ekranie aktualnego stanu salonu fryzjerskiego. 
+ 	Gdy w programie jest włączona opcja \texttt{debug} to ta funkcja powoduje również 
+ 	wypisanie na ekranie listy klientów, którzy zrezygnowali oraz przebywających w 
+ 	poczekalni.
+ 	
+ 	\subsubsection{semaphoreInit}
+ 	Jest to funkcja do inicjalizacji semaforów.
+ 	
+ 	\subsubsection{createCustomer}
+ 	Jest to funkcja do stworzenia wątku \texttt{Klienta}.\\\\
+ 	Pozostałe funkcje się różnią od wersji programu i ze względu na użycie synchronizacji 
+ 	zostano szczegółowo przedstawione.
+ 	\pagebreak
+ 	\subsection{Wersja bez użycia zmiennych warunkowych}
+ 	\subsubsection{Wątek klienta}
+ 	\begin{lstlisting}
+	void customer(void* arg) {
+			// Zablokowanie mutexu odpowiedzialnego za wydarzeniami w poczekalni
+			// Klient wszedl do poczekalni
+    	pthread_mutex_lock(&mutex_poczekalnia);
+    	// Klient pobiera numerek
+    	int id = licznik++;
+    	// Klient sprawdza czy jest wystarczajaca ilosc miejsc w poczekalni
+    	if(sem_trywait(&poczekalnia) == 0){
+    			// Klientowi udalo sie wejsc do poczekalni i zajac miejsce
+        	enqueue(oczekujacy_klienci, id, NULL);
+        	state();
+        	// Klient sygnalizuje fryzjerowi ze jest gotowy do strzyzenia
+        	// poprzez wyslanie do niego sygnalu
+        	sem_post(&budzenie);
+        	// Klient zostal zaproszony do strzyzenia
+        	// Mutex poczekalni zostal zwolniony
+        	pthread_mutex_unlock(&mutex_poczekalnia);
+			
+					// Klient wszedl do gabinetu fryzjera
+					// Mutex gabinetu zostaje zablokowany
+    	    pthread_mutex_lock(&mutex_gabinet);
+					// Klient idzie na strzyzenie
+        	sem_wait(&strzyzenie_klienta);
+        	// Zwolnione zostaje miejsce w poczekalni
+	        sem_post(&poczekalnia);
+	        klient = id;
+        	oczekujacy_klienci = dequeue(oczekujacy_klienci);
+	        state();
+        	usleep(100000);
+        	// Klient zostaje ostrzyzony
+    	    sem_post(&zajetosc_fryzjera);
+	        klient = -1;
+        	state();
+        	// Klient wychodzi od fryzjera
+        	// Mutex gabinetu zostaje odblokowany
+        	pthread_mutex_unlock(&mutex_gabinet);
+    	}
+    	else {
+    			// Klientowi nie udalo sie zajac miejsca wiec zrezygnowal z wizyty 
+    			// u fryzjera
+        	++zrezygnowani;
+	        enqueue(zrezygnowani_klienci, id, NULL);
+    	    state();
+    	    // Mutex poczekalni zostal zwolniony po wyjsciu Klienta
+   		    pthread_mutex_unlock(&mutex_poczekalnia);
+	    }
+	}
+	\end{lstlisting}
+	\pagebreak
+	\subsubsection{Wątek fryzjera}
+	\begin{lstlisting}
+	void barber(void* arg) {
+			// Fryzjer pracuje caly czas
+    	while(1) {
+    			// Fryzjer zostaje powiadomiony  o tym ze jest klient
+        	sem_wait(&budzenie);
+        	// Fryzjer bierze Klienta z poczekalni
+        	// Mutex poczekalni zostaje zablokowny
+	        pthread_mutex_lock(&mutex_poczekalnia);
+	        // Klient zostaje ostrzyzony
+     	   	sem_post(&strzyzenie_klienta);
+     	   	// Fryzjer wypuszcza Klienta
+     	   	// Mutex zostaje odblokowny
+      	  pthread_mutex_unlock(&mutex_poczekalnia);
+      	  // Fryzjer mowi ze jest wolny
+     	   	sem_wait(&zajetosc_fryzjera);
+        	usleep(100000);
+	    }
+	}
+	\end{lstlisting}
+	
+ 	\subsection{Wersja z użyciem zmiennych warunkowych}
+ 	\subsubsection{Wątek fryzjera}
+	\begin{lstlisting}
+	void barber(void* arg) {
+			// Fryzjer pracuje caly czas
+    	while(1) {
+    			// Fryzjer zostaje powiadomiony  o tym ze jest klient
+        	sem_wait(&budzenie);
+        	// Fryzjer bierze Klienta z poczekalni
+        	// Mutex poczekalni zostaje zablokowny
+	        pthread_mutex_lock(&mutex_poczekalnia);
+					pthread_cond_t *zmienna = oczekujacy_klienci->next->zmienna;
+					// Klient zostaje ostrzyzony
+					// Wysyla sygnal przez zmienna warunkowa
+        	pthread_cond_signal(zmienna);     	   	
+        	// Fryzjer wypuszcza Klienta
+     	   	// Mutex zostaje odblokowny
+      	  pthread_mutex_unlock(&mutex_poczekalnia);
+      	  // Fryzjer mowi ze jest wolny
+     	   	sem_wait(&zajetosc_fryzjera);
+        	usleep(100000);
+	    }
+	}
+	\end{lstlisting}
+	\pagebreak
+ 	\subsubsection{Wątek klienta}
+ 	\begin{lstlisting}
+	void customer(void* arg) {
+			// Zablokowanie mutexu odpowiedzialnego za wydarzeniami w poczekalni
+			// Klient wszedl do poczekalni
+    	pthread_mutex_lock(&mutex_poczekalnia);
+    	// Klient pobiera numerek
+    	int id = licznik++;
+    	// Przypisanie zmiennej warunkowej do klienta
+    	pthread_cond_t *cond_klient = malloc(sizeof(pthread_cond_t));
+    	pthread_cond_init(cond_klient, NULL);
+    	// Klient sprawdza czy jest wystarczajaca ilosc miejsc w poczekalni
+    	if(sem_trywait(&poczekalnia) == 0){
+    			// Klientowi udalo sie wejsc do poczekalni i zajac miejsce
+        	enqueue(oczekujacy_klienci, id, cond_klient);
+        	state();
+        	// Klient sygnalizuje fryzjerowi ze jest gotowy do strzyzenia
+        	// poprzez wyslanie do niego sygnalu
+        	sem_post(&budzenie);
+        	// Klient czeka na zaproszenie do strzyzenia
+        	pthread_cond_wait(cond_klient, &mutex_poczekalnia);
+        	// Zwolnione zostaje miejsce w poczekalni
+        	sem_post(&poczekalnia);
+        	// Klient zostal zaproszony do strzyzenia
+        	// Mutex poczekalni zostal zwolniony
+        	pthread_mutex_unlock(&mutex_poczekalnia);
+			
+					// Klient wszedl do gabinetu fryzjera
+					// Mutex gabinetu zostaje zablokowany
+    	    pthread_mutex_lock(&mutex_gabinet);
+	        klient = id;
+        	oczekujacy_klienci = dequeue(oczekujacy_klienci);
+	        state();
+        	usleep(100000);
+        	// Klient zostaje ostrzyzony
+    	    sem_post(&zajetosc_fryzjera);
+	        klient = -1;
+        	state();
+        	// Klient wychodzi od fryzjera
+        	// Mutex gabinetu zostaje odblokowany
+        	pthread_mutex_unlock(&mutex_gabinet);
+    	}
+    	else {
+    			// Klientowi nie udalo sie zajac miejsca wiec zrezygnowal z wizyty 
+    			// u fryzjera
+        	++zrezygnowani;
+	        enqueue(zrezygnowani_klienci, id, NULL);
+    	    state();
+    	    // Mutex poczekalni zostal zwolniony po wyjsciu Klienta
+   		    pthread_mutex_unlock(&mutex_poczekalnia);
+	    }
+	}
+	\end{lstlisting}
+
+ 	\section{Sposób odinstalowania programu}
+ 	Demon jest odinstalowany z linii komend. Należy przejść do katalogu z plikiem 
+ 	\texttt{Makefile} i uruchomić komendę \texttt{make clean}.
 
 \end{document}

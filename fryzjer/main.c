@@ -55,6 +55,7 @@ void parser(int argc, char* argv[]) {
 void state(){
     int value;
     sem_getvalue(&poczekalnia, &value);
+    printf("%d\n", value);
     value = rozmiar - value;
     if (klient < 0)
         printf("Res: %d Wromm: %d/%d [in: Brak]\n", zrezygnowani, value, rozmiar);
@@ -95,9 +96,9 @@ void customer(void* arg) {
         pthread_mutex_unlock(&mutex_poczekalnia);
 
         pthread_mutex_lock(&mutex_gabinet);
-        sem_post(&poczekalnia);
 
         sem_wait(&strzyzenie_klienta);
+        sem_post(&poczekalnia);
         //printf("Strzyżenie klienta o numerze: %d\n", id);
         klient = id;
         oczekujacy_klienci = dequeue(oczekujacy_klienci);
