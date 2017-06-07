@@ -1,0 +1,110 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=0.5in]{geometry}
+
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{setspace} %texlive-latex-recommended
+\usepackage{enumitem}
+
+\usepackage{tabularx}
+
+\newcommand{\imgz}{0.44\linewidth}
+\newcommand{\numerzajec}{2}
+\newcommand{\tematzajec}{Problem śpiącego fryzjera.}
+\newcommand{\datazajec}{8 czerwca 2017}
+
+
+\begin{document}
+	\thispagestyle{empty}
+	\begin{center}
+		\vspace*{1.6cm}
+		\includegraphics[width=0.55\linewidth]{pblogo.png}	\\
+		\vspace{0.5cm}
+		\large
+		\textsf{\textbf{Sprawozdanie z pracowni specjalistycznej}} \\
+		\vspace{0.5cm}
+		\textsf{\textbf{\textit{Systemy operacyjne}}}	\\
+		\vspace{1cm}
+		\textsf{Projekt numer: \textbf{\numerzajec}}	\\
+		\vspace{0.5cm}
+		\textsf{Temat: \textbf{\tematzajec}}
+	\end{center}
+
+	\vspace{2cm}
+	\begin{tabular}{rl}
+        Wykonujący ćwiczenie: &\textbf{Karol Budlewski} \\
+                              & \textbf{Karol Budlewski} \\
+	\end{tabular}
+
+	\vspace{3.5cm}	
+
+	\begin{minipage}{0.45\linewidth}
+		\large
+		\begin{spacing}{1.5}
+		Studia dzienne \\
+		Kierunek: Informatyka \\
+		Semestr: IV \\
+		\end{spacing}
+	\end{minipage}
+	\begin{minipage}[t]{0.5\linewidth}
+		\large
+		\begin{spacing}{1.2}
+		Grupa zajęciowa: PS4
+		\end{spacing}
+	\end{minipage}
+	
+	Prowadzący ćwiczenie: \textbf{mgr inż. Daniel Reska} \\
+	
+	\begin{flushright}
+		\begin{minipage}[t]{0.3\linewidth}
+			\centering
+			................. \\
+			\small OCENA
+		\end{minipage}
+	\end{flushright}
+	
+	\begin{minipage}[t]{0.4\linewidth}
+		\centering
+		Data \\
+		\small \datazajec
+	\end{minipage}
+	
+	\begin{flushright}
+		\begin{minipage}[t]{0.5\linewidth}
+			\centering
+			............................................. \\
+			\small \textsf{Data i podpis prowadzącego}
+		\end{minipage}
+	\end{flushright}
+	\pagebreak
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	\tableofcontents
+
+	\pagebreak
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	
+	\section{Wstęp}
+	Celem projektu było rozwiązanie problemu fryzjera realizowanego na wątkach oraz 
+	synchronizowanego semaforami, mutexami i zmiennymi warunkowymi.\\
+	Program zrealizowany jest w wariantach:
+	\begin{enumerate}[label=\alph*)]
+		\item z użyciem wyłącznie semaforów i mutexów.
+		\item z użyciem zmiennych warunkowych.
+	\end{enumerate}
+	Oczekiwana liczba punktów to \texttt{34}.
+	
+	\section{Wersja z użyciem zmiennych warunkowych}
+	\subsection{Instalacja}
+	Program jest instalowany z linii komend. Należy przejść do katalogu z plikiem 
+	\texttt{Makefile} i uruchomić komendę \texttt{make}. Po tym mamy już skompilowany 
+	program, który mieści się w katalogu \texttt{build}.
+
+	
+
+
+\end{document}

@@ -3,14 +3,13 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <string.h>
-#include <ctype.h>
 #include "queue.h"
 
 pthread_mutex_t mutex_poczekalnia = PTHREAD_MUTEX_INITIALIZER, mutex_gabinet = PTHREAD_MUTEX_INITIALIZER;
 pthread_t thread_fryzjer;
+
 int licznik = 0, zrezygnowani = 0, klient = -1;
-sem_t budzenie, zajetosc_fryzjera, strzyzenie_klienta, poczekalnia;
+sem_t budzenie, zajetosc_fryzjera, poczekalnia;
 
 queue *oczekujacy_klienci, *zrezygnowani_klienci;
 
@@ -74,7 +73,8 @@ void barber(void* arg) {
         sem_wait(&budzenie);
         pthread_mutex_lock(&mutex_poczekalnia);
         //printf("Rozpoczęcie strzyżenia\n");
-        sem_post(&strzyzenie_klienta);
+        pthread_cond_t *zmienna = oczekujacy_klienci->next->zmienna;
+        pthread_cond_signal(zmienna);
         pthread_mutex_unlock(&mutex_poczekalnia);
         sem_wait(&zajetosc_fryzjera);
         //printf("Zakończenie strzyżenia\n");
@@ -86,18 +86,21 @@ void barber(void* arg) {
 void customer(void* arg) {
     //printf("Wbijam do poczekalni\n");
     pthread_mutex_lock(&mutex_poczekalnia);
+
     int id = licznik++;
+    pthread_cond_t *cond_klient = malloc(sizeof(pthread_cond_t));
+    pthread_cond_init(cond_klient, NULL);
     if(sem_trywait(&poczekalnia) == 0){
-        enqueue(oczekujacy_klienci, id, NULL);
+        enqueue(oczekujacy_klienci, id, cond_klient);
         state();
         //printf("Siadam na krzeszło: %d\n", id);
         sem_post(&budzenie);
+        pthread_cond_wait(cond_klient, &mutex_poczekalnia);
+        sem_post(&poczekalnia);
         pthread_mutex_unlock(&mutex_poczekalnia);
 
         pthread_mutex_lock(&mutex_gabinet);
-        sem_post(&poczekalnia);
 
-        sem_wait(&strzyzenie_klienta);
         //printf("Strzyżenie klienta o numerze: %d\n", id);
         klient = id;
         oczekujacy_klienci = dequeue(oczekujacy_klienci);
@@ -118,14 +121,13 @@ void customer(void* arg) {
 }
 
 void createCustomer() {
-    pthread_t* thread_klient = malloc(sizeof(pthread_t));
-    pthread_create(thread_klient, NULL, (void*) customer, NULL);
+    pthread_t* customer_thread = malloc(sizeof(pthread_t));
+    pthread_create(customer_thread, NULL, (void*) customer, NULL);
 }
 
 void semaphoreInit(){
     sem_init(&budzenie, 0, 0);
     sem_init(&zajetosc_fryzjera, 0, 0);
-    sem_init(&strzyzenie_klienta, 0, 0);
     sem_init(&poczekalnia, 0, rozmiar);
 }
 
