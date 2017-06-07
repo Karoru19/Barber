@@ -55,11 +55,11 @@ void parser(int argc, char* argv[]) {
 void state(){
     int value;
     sem_getvalue(&poczekalnia, &value);
-    value = 10 - value;
+    value = rozmiar - value;
     if (klient < 0)
-        printf("Res: %d Wromm: %d/10 [in: Brak]\n", zrezygnowani, value);
+        printf("Res: %d Wromm: %d/%d [in: Brak]\n", zrezygnowani, value, rozmiar);
     else
-        printf("Res: %d Wromm: %d/10 [in: %d]\n", zrezygnowani, value, klient);
+        printf("Res: %d Wromm: %d/%d [in: %d]\n", zrezygnowani, value, rozmiar, klient);
     if (debug == 1) {
         printf("waiting clients: < ");
         show_queue(oczekujacy_klienci);

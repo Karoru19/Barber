@@ -98,29 +98,30 @@
 	\end{enumerate}
 	Oczekiwana liczba punktów to \texttt{34}.
 	
-	\section{Wersja z użyciem zmiennych warunkowych}
-	\subsection{Instalacja}
+	\section{Instalacja}
 	Program jest instalowany z linii komend. Należy przejść do katalogu z plikiem 
 	\texttt{Makefile} i uruchomić komendę \texttt{make}. Po tym mamy już skompilowany 
 	program, który mieści się w katalogu \texttt{build}.
 	
-	\subsection{Sposób uruchamiania}
+	\section{Sposób uruchamiania}
 	Program jest uruchamiany z linii komend i może przyjmować następujące parametry:
-	
 	\begin{enumerate}[label=\alph*)]
-		\item -t  - określa czas w mikrosekundach z jakim będą się pojawiać 
-				nowe wątki Klient
-		\item -ts - określa czas w sekundach z jakim będą się pojawiać 
-				nowe wątki Klient
-		\item -tms - określa czas w milisekundach z jakim będą się pojawiać 
-				nowe wątki Klient
-		\item -size - określa wielkość poczekalni
-		\item -debug - uruchamia tryb debug, wypisujący całą kolejkę klientów 
-				czekających oraz tych którzy nie dostali się do gabinetu 
+		\item \texttt{-t}  - określa czas w \texttt{mikrosekundach} z jakim będą 
+				się pojawiać nowe wątki \texttt{Klient}
+		\item \texttt{-ts} - określa czas w \texttt{sekundach} z jakim będą 
+				się pojawiać nowe wątki \texttt{Klient}
+		\item \texttt{-tms} - określa czas w \texttt{milisekundach} z jakim będą 
+				się pojawiać nowe wątki \texttt{Klient}
+		\item \texttt{-size} - określa wielkość poczekalni
+		\item \texttt{-debug} - uruchamia tryb \texttt{debug}, wypisujący całą 
+				kolejkę klientów czekających oraz tych którzy nie dostali się do 
+				gabinetu 
 	\end{enumerate}
 	Do uruchomienia programu nie wymagane są żadne parametry. Program uruchomi 
 	się wówczas z ustawieniami domyślnymi, czyli czas ustawiony na 75 ms, rozmiar 
-	poczekalni na 10 oraz bez debuga.
+	poczekalni na 10 oraz bez debuga. Parametry \texttt{-t}, \texttt{-ts}, \texttt{-tms} 
+	wpływają na siebie i zawsze będzie brany ostatni pod uwagę oraz jeżeli zostanie 
+	popełniony błąd w którym kolwiek z opcji program nie zostanie uruchomiony.
 	\subsubsection*{Przykłady uruchamiania programu}
 	\begin{itemize}
 		\item ./build/fryzjer -t   150
@@ -130,12 +131,12 @@
 		\item ./build/fryzjer -tms 150 -size 10
 		\item ./build/fryzjer -t   150 -size 10 -debug
 	\end{itemize}
- 
+ 	
+ 	\section{Testowanie}
+ 	
+ 	\section{Zaimplementowane funkcje}
+ 	\subsection{Wersja z użyciem zmiennych warunkowych}
 
-
-
-
-	
-
+ 	
 
 \end{document}
