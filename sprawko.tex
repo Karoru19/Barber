@@ -103,6 +103,37 @@
 	Program jest instalowany z linii komend. Należy przejść do katalogu z plikiem 
 	\texttt{Makefile} i uruchomić komendę \texttt{make}. Po tym mamy już skompilowany 
 	program, który mieści się w katalogu \texttt{build}.
+	
+	\subsection{Sposób uruchamiania}
+	Program jest uruchamiany z linii komend i może przyjmować następujące parametry:
+	
+	\begin{enumerate}[label=\alph*)]
+		\item -t  - określa czas w mikrosekundach z jakim będą się pojawiać 
+				nowe wątki Klient
+		\item -ts - określa czas w sekundach z jakim będą się pojawiać 
+				nowe wątki Klient
+		\item -tms - określa czas w milisekundach z jakim będą się pojawiać 
+				nowe wątki Klient
+		\item -size - określa wielkość poczekalni
+		\item -debug - uruchamia tryb debug, wypisujący całą kolejkę klientów 
+				czekających oraz tych którzy nie dostali się do gabinetu 
+	\end{enumerate}
+	Do uruchomienia programu nie wymagane są żadne parametry. Program uruchomi 
+	się wówczas z ustawieniami domyślnymi, czyli czas ustawiony na 75 ms, rozmiar 
+	poczekalni na 10 oraz bez debuga.
+	\subsubsection*{Przykłady uruchamiania programu}
+	\begin{itemize}
+		\item ./build/fryzjer -t   150
+		\item ./build/fryzjer -ts  150
+		\item ./build/fryzjer -tms 150
+		\item ./build/fryzjer -ts  150 -debug
+		\item ./build/fryzjer -tms 150 -size 10
+		\item ./build/fryzjer -t   150 -size 10 -debug
+	\end{itemize}
+ 
+
+
+
 
 	
 

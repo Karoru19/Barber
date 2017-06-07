@@ -8,10 +8,48 @@
 pthread_mutex_t mutex_poczekalnia = PTHREAD_MUTEX_INITIALIZER, mutex_gabinet = PTHREAD_MUTEX_INITIALIZER;
 pthread_t thread_fryzjer;
 
-int licznik = 0, zrezygnowani = 0, klient = -1, debug = 0;
-sem_t budzenie, zajetosc_fryzjera, strzyzenie_klienta, customerLock2, poczekalnia;
+int licznik = 0, zrezygnowani = 0, klient = -1;
+sem_t budzenie, zajetosc_fryzjera, poczekalnia;
 
 queue *oczekujacy_klienci, *zrezygnowani_klienci;
+
+int czas, rozmiar, debug;
+
+void parser(int argc, char* argv[]) {
+    czas = 75000; //domyślny time 75 ms
+    rozmiar = 10;  //domyślny rozmiar poczekalni
+    debug = 0; //domyślnie no debug
+
+    if(argc >= 2 && argc < 7) {
+        for (int j=0; j < argc; j++) {
+            if(strcmp(argv[j], "-t") == 0) {
+                int len = strlen(argv[j+1]);
+                for(int i = 0; i < len; i++) if (!isdigit(argv[j+1][i])) return;
+                czas = atoi(argv[j+1]);  //us
+                j++;
+            }
+            else if(strcmp(argv[j], "-ts") == 0) {
+                int len = strlen(argv[j+1]);
+                for(int i=0;i<len;i++) if (!isdigit(argv[j+1][i])) return;
+                czas = atoi(argv[j+1]) * 1000000;  //s -> us
+                j++;
+            }
+            else if(strcmp(argv[j], "-tms") == 0) {
+                int len = strlen(argv[j+1]);
+                for(int i = 0; i < len; i++) if (!isdigit(argv[j+1][i])) return;
+                czas = atoi(argv[j+1]) * 1000;  //ms -> us
+                j++;
+            }
+            else if(strcmp(argv[j], "-size") == 0 || (strcmp(argv[j], "-s") == 0)) {
+                int len = strlen(argv[j+1]);
+                for(int i = 0; i < len; i++) if (!isdigit(argv[j+1][i])) return;
+                rozmiar = atoi(argv[j+1]);  //rozmiar poczekalni
+                j++;
+            }
+            else if(strcmp(argv[j], "-debug") == 0) debug = 1;
+    }
+  }
+}
 
 void state(){
     int value;
@@ -90,19 +128,18 @@ void createCustomer() {
 void semaphoreInit(){
     sem_init(&budzenie, 0, 0);
     sem_init(&zajetosc_fryzjera, 0, 0);
-    sem_init(&strzyzenie_klienta, 0, 0);
-    sem_init(&poczekalnia, 0, 10);
+    sem_init(&poczekalnia, 0, rozmiar);
 }
 
 int main(int argc,char *argv[]) {
+    parser(argc, argv);
     semaphoreInit();
     zrezygnowani_klienci = init_queue();
     oczekujacy_klienci = init_queue();
     setbuf(stdout, NULL);
-    debug = 1;
     pthread_create(&thread_fryzjer, NULL, (void*) barber, NULL);
     while(1) {
         createCustomer();
-        usleep(75000);
+        usleep(czas);
     }
 }
